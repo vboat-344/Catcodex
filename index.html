@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="theme-color" content="#16130f">
+<title>Кошачий кодекс</title>
+<style>
+  /* ===== Тема ===== */
+  :root{
+    --bg:#16130f; --card:#221d16; --card2:#2b241b; --line:#3d3427;
+    --text:#f2e9dc; --muted:#a9987f; --amber:#ffb347; --amber2:#ff8c1a;
+    --ok:#8fce6a; --err:#ff7b6b; --jail:#ff5c5c;
+  }
+  [data-theme="light"]{
+    --bg:#f5f5f0; --card:#ffffff; --card2:#fafafa; --line:#ddd;
+    --text:#222; --muted:#666; --amber:#e67e22; --amber2:#d35400;
+    --ok:#4caf50; --err:#e74c3c; --jail:#c0392b;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    transition: background 0.3s, color 0.3s;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:16px 14px 40px}
+
+  .header-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+  h1{font-size:22px; margin:0; display:flex; align-items:center; gap:8px}
+  .theme-toggle{
+    background:var(--card2); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:6px 10px; cursor:pointer; font-size:14px;
+  }
+  .sub{color:var(--muted); font-size:13px; margin-bottom:14px}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px}
+
+  /* ===== Ввод ===== */
+  .inputrow{display:flex; gap:8px}
+  #inp{
+    flex:1; min-width:0; background:var(--card2); border:1px solid var(--line);
+    border-radius:10px; color:var(--text); padding:12px; font-size:16px;
+  }
+  #inp:focus{outline:none; border-color:var(--amber)}
+  .btn{
+    background:linear-gradient(180deg,var(--amber),var(--amber2)); color:#241a08;
+    border:none; border-radius:10px; padding:12px 16px; font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .btn:active{transform:scale(.97)}
+  .hint{color:var(--muted); font-size:12.5px; margin-top:8px}
+
+  /* ===== Чипы-кнопки ===== */
+  .chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:12px}
+  .chip{
+    background:var(--card2); border:1px solid var(--line); color:var(--text);
+    border-radius:999px; padding:7px 12px; font-size:13.5px; cursor:pointer; user-select:none;
+  }
+  .chip:active{border-color:var(--amber)}
+  .chip.mod{border-color:#6b5326; color:var(--amber)}
+  .chip.cat{font-weight:700}
+
+  /* ===== Приговор ===== */
+  #out{white-space:pre-wrap; font-size:14.5px}
+  #out .err{color:var(--err)}
+  #out .total{color:var(--amber); font-weight:700; font-size:15.5px}
+  #out .jail{color:var(--jail)}
+  #out .free{color:var(--muted)}
+  .empty{color:var(--muted); font-size:14px}
+
+  /* ===== Дела котов ===== */
+  .cases{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .case{background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:11px}
+  .case b{font-size:15px}
+  .case .debt{color:var(--amber); font-weight:700; margin-top:4px}
+  .case ul{margin:7px 0 0; padding-left:16px; color:var(--muted); font-size:12.5px}
+  .case .none{color:var(--muted); font-size:12.5px; margin-top:6px}
+
+  /* ===== Низ ===== */
+  .foot{display:flex; gap:8px; margin-top:4px}
+  .ghost{
+    flex:1; background:none; border:1px solid var(--line); color:var(--muted);
+    border-radius:10px; padding:10px; font-size:13px; cursor:pointer;
+  }
+  .ghost:active{color:var(--text); border-color:var(--amber)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-row">
+    <h1>🐾 Кошачий кодекс</h1>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Сменить тему">🌙</button>
+  </div>
+  <div class="sub">Протоколы, штрафы и тюрьма для Гоши и Тоси</div>
+
+  <!-- Ввод протокола -->
+  <div class="card">
+    <div class="inputrow">
+      <input id="inp" placeholder="Гоша, 2.1(h=2.5), 1.1, 6.1" autocomplete="off">
+      <button class="btn" id="go">Приговор</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="hint">2.1 — укажи высоту (h), important=1 — важное место, allowed=1 — разрешено. 3.1(jail=1) — тюрьма вместо штрафа.</div>
+  </div>
+
+  <!-- Результат -->
+  <div class="card"><div id="out"><span class="empty">Здесь появится приговор…</span></div></div>
+
+  <!-- Дела -->
+  <div class="card">
+    <div class="cases">
+      <div class="case" id="case-gosha"></div>
+      <div class="case" id="case-tosya"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <button class="ghost" id="export">Скачать историю (JSON)</button>
+    <button class="ghost" id="reset">Очистить историю</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= ДАННЫЕ КОДЕКСА ================= */
+const CATS = ["гоша", "тося"];
+const RUS  = { "гоша":"Гоша", "тося":"Тося" };
+
+// Статьи с фиксированным штрафом
+const FINES = {
+  "4.1.2": ["Попытка сбежать при оформлении", 300],
+  "5.1.1": ["Мелкая кража", 150],
+  "5.1.2": ["Крупная кража", 400],
+  "5.2.1": ["Крики с 00:00 по 10:00", 100],
+  "5.3":   ["Массовые беспорядки", 300],
+  "6.1":   ["Наркотики", 600],
+  "3.2.1": ["Попытка по статье 3.2", 200],
+};
+// Особые статьи (штраф/тюрьма считаются отдельно)
+const SPECIAL = new Set(["1.1","1.2","2.1","2.2","2.3","3.1","3.2","3.3","4.1","4.1.1","4.2","5.2.1.1"]);
+
+// Названия всех статей — для карточек дел
+const NAMES = {
+  "1.1":"Превышение скорости", "1.2":"Незаконные гонки",
+  "2.1":"Руфинг", "2.2":"Зацепинг", "2.3":"Диггерство",
+  "3.1":"Нападение", "3.2":"Изнасилование", "3.3":"Нападение с изнасилованием",
+  "4.1":"Побег из тюрьмы", "4.1.1":"Попытка побега из тюрьмы",
+  "4.1.2":"Попытка сбежать при оформлении", "4.2":"Сопротивление при задержании",
+  "5.1.1":"Мелкая кража", "5.1.2":"Крупная кража",
+  "5.2.1":"Крики с 00:00 по 10:00", "5.2.1.1":"Ночной коэффициент",
+  "5.3":"Массовые беспорядки", "6.1":"Наркотики", "3.2.1":"Попытка по статье 3.2",
+};
+
+// Какие параметры у какой статьи можно писать в скобках
+const ALLOWED_PARAMS = { "2.1": new Set(["h","important","allowed"]), "3.1": new Set(["jail"]) };
+
+// Чипы-кнопки под строкой ввода
+const CHIPS = [
+  {t:"Гоша", cat:true}, {t:"Тося", cat:true},
+  {t:"1.1 скорость"}, {t:"1.2 гонки"}, {t:"2.1(h=2) руфинг"}, {t:"2.2 зацепинг"},
+  {t:"2.3 диггерство"}, {t:"3.1 нападение"}, {t:"5.1.1 кража"}, {t:"6.1 наркотики"},
+  {t:"5.2.1 крики"}, {t:"5.3 беспорядки"}, {t:"4.1.2 сбег при оформлении"},
+  {t:"5.2.1.1 ночь", mod:true}, {t:"4.2 сопротивление", mod:true},
+];
+
+/* ================= ИСТОРИЯ (localStorage вместо JSON-файла) ================= */
+const KEY = "cat_codex_v1";
+function blank(){ return { "гоша":{counts:{},total:0}, "тося":{counts:{},total:0} }; }
+function load(){
+  try{
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if(!d) return blank();
+    for(const c of CATS) if(!d[c]) d[c] = {counts:{},total:0};
+    return d;
+  }catch(e){ return blank(); }
+}
+function save(data){ localStorage.setItem(KEY, JSON.stringify(data)); }
+
+/* ================= ПАРСЕР ВВОДА ================= */
+const RE = /^(\d+(?:\.\d+)*)(?:\s*\(([^()]*)\))?$/;
+
+function parse(line){
+  const chunks = line.split(",").map(s => s.trim());
+  if(chunks.length < 2 || !CATS.includes(chunks[0].toLowerCase()))
+    throw new Error("Формат: Гоша, 1.1, 2.1(h=2.5), 6.1");
+  const articles = [];
+  for(const item of chunks.slice(1)){
+    const m = RE.exec(item);
+    if(!m) throw new Error("Неверная запись статьи: " + item);
+    const art = m[1], raw = m[2];
+    if(!SPECIAL.has(art) && !(art in FINES))
+      throw new Error("Неизвестная статья " + art + ". У кражи укажи 5.1.1 или 5.1.2.");
+    const params = {};
+    if(raw){
+      for(const pair of raw.split(";")){
+        if(!pair.includes("=")) throw new Error("Параметр записывается как ключ=значение: " + pair);
+        const eq = pair.indexOf("=");
+        const key = pair.slice(0,eq).trim();
+        const value = pair.slice(eq+1).trim().toLowerCase();
+        if(key in params) throw new Error("Параметр " + key + " повторяется");
+        params[key] = value;
+      }
+      const allowed = ALLOWED_PARAMS[art];
+      const unknown = Object.keys(params).filter(k => !allowed || !allowed.has(k));
+      if(unknown.length) throw new Error("У статьи " + art + " нет параметров: " + unknown.sort().join(", "));
+    }
+    articles.push([art, params]);
+  }
+  return [chunks[0].toLowerCase(), articles];
+}
+
+function yes(v){
+  if(v !== "0" && v !== "1") throw new Error("Указывай 0 или 1");
+  return v === "1";
+}
+
+/* ================= РУФИНГ ================= */
+function rooftop(params){
+  if(!("h" in params)) throw new Error("Для 2.1 укажи высоту: 2.1(h=2.5)");
+  const h = Number(params.h);
+  if(!isFinite(h) || params.h === "") throw new Error("Высота должна быть числом, например h=2.5");
+  if(h < 0) throw new Error("Высота должна быть неотрицательным числом");
+  if("allowed" in params && yes(params.allowed)) return null;      // место разрешено
+  if(h < 1.5 && !("important" in params && yes(params.important))) return null; // низко и не важно
+  // Важное место ниже порога: минимальный штраф
+  if(h <= 2) return 100;
+  if(h <= 3) return 300;
+  return 500;
+}
+
+/* ================= ПРИГОВОР ================= */
+function judge(data, cat, articles){
+  const counts = Object.assign({}, data[cat].counts);
+  const entries = [], jail = [];
+  let base = 0;
+
+  const night      = articles.some(a => a[0] === "5.2.1.1"); // ночной коэффициент
+  const resistance = articles.some(a => a[0] === "4.2");     // сопротивление
+
+  for(const [art, params] of articles){
+    if(art === "4.2" || art === "5.2.1.1") continue; // это модификаторы, не нарушения
+
+    const n = (counts[art] || 0) + 1;
+    let fine = 0, sentence = "", name;
+
+    if(art in FINES){ [name, fine] = FINES[art]; }
+    else if(art === "1.1" || art === "1.2" || art === "2.3"){
+      const conf = { "1.1":["Превышение скорости",100,3], "1.2":["Незаконные гонки",200,3], "2.3":["Диггерство",800,1] }[art];
+      name = conf[0];
+      if(n > conf[2]) sentence = "тюрьма"; else fine = conf[1];
+    }
+    else if(art === "2.1"){
+      name = "Руфинг";
+      const amount = rooftop(params);
+      if(amount === null){
+        entries.push({cls:"free", text:"2.1 Руфинг: нарушения нет (неразрешённое важное место не указано)"});
+        continue;
+      }
+      if(n > 3) sentence = "тюрьма"; else fine = amount;
+    }
+    else if(art === "2.2"){
+      name = "Зацепинг";
+      if(n >= 7) sentence = "тюрьма"; else fine = n <= 3 ? 600 : 1000;
+    }
+    else if(art === "3.1"){
+      name = "Нападение";
+      if("jail" in params && yes(params.jail)) sentence = "тюрьма (решение судьи)"; else fine = 400;
+    }
+    else if(art === "3.2"){ [name, sentence] = ["Изнасилование", "тюрьма"]; }
+    else if(art === "3.3"){ [name, fine, sentence] = ["Нападение с изнасилованием", 500, "тюрьма"]; }
+    else if(art === "4.1"){ [name, sentence] = ["Побег из тюрьмы", "увеличение срока"]; }
+    else if(art === "4.1.1"){ [name, sentence] = ["Попытка побега из тюрьмы", "продление срока"]; }
+
+    counts[art] = n;
+
+    // Коэффициенты: ночь ×1.5 (сами крики 5.2.1 не умножаются) и сопротивление ×1.5
+    let mult = 1;
+    if(night && art !== "5.2.1") mult *= 1.5;
+    if(resistance) mult *= 1.5;
+    const amount = fine * mult;
+    base += amount;
+
+    let text = art + " " + name + ": " + (fine ? fmt(amount) + " мурчиков" : "без штрафа");
+    if(sentence){ text += " + " + sentence; jail.push(art + ": " + sentence); }
+    if(["1.1","1.2","2.1","2.2","2.3"].includes(art)) text += " (случай №" + n + ")";
+    entries.push({cls: sentence ? "jail" : "", text});
+  }
+
+  if(night)      entries.push({cls:"free", text:"5.2.1.1: ночной коэффициент ×1.5 применён к другим нарушениям"});
+  if(resistance) entries.push({cls:"free", text:"4.2: коэффициент сопротивления ×1.5 применён к штрафам"});
+
+  data[cat].counts = counts;
+  data[cat].total  = data[cat].total + base;
+  return {entries, base, jail};
+}
+
+/* ================= ФОРМАТИРОВАНИЕ ================= */
+function fmt(x){
+  const s = (Math.round(x * 10) / 10).toString();
+  return s.endsWith(".0") ? s.slice(0,-2) : s;
+}
+
+/* ================= ИНТЕРФЕЙС ================= */
+const inp = document.getElementById("inp");
+const out = document.getElementById("out");
+let data = load();
+
+// Чипы-кнопки: тап добавляет статью в строку ввода
+const chipsBox = document.getElementById("chips");
+for(const c of CHIPS){
+  const b = document.createElement("button");
+  b.className = "chip" + (c.mod ? " mod" : "") + (c.cat ? " cat" : "");
+  b.textContent = c.t;
+  const art = c.t.split(" ")[0]; // первый токен — номер статьи
+  b.onclick = () => {
+    if(c.cat){
+      // Кот: если строка пустая — ставим имя, иначе заменяем первое слово
+      const rest = inp.value.includes(",") ? inp.value.slice(inp.value.indexOf(",") + 1) : "";
+      inp.value = c.t + rest;
+    }else{
+      inp.value = inp.value.trim()
+        ? (CATS.some(x => inp.value.toLowerCase().startsWith(x)) ? inp.value.trimEnd() + ", " + art : inp.value.trimEnd() + ", " + art)
+        : "Гоша, " + art;
+    }
+    inp.focus();
+  };
+  chipsBox.appendChild(b);
+}
+
+function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+function showVerdict(res, cat){
+  let html = "<b>Дело: " + RUS[cat] + "</b>\n";
+  for(const e of res.entries)
+    html += '<span class="' + e.cls + '">' + esc(e.text) + "</span>\n";
+  html += '<span class="total">Итого: ' + fmt(res.base) + " мурчиков</span>";
+  if(res.jail.length)
+    html += '\n<span class="jail">Тюрьма / продление: ' + esc(res.jail.join("; ")) + "</span>";
+  out.innerHTML = html;
+}
+
+document.getElementById("go").onclick = () => {
+  const line = inp.value.trim();
+  if(!line) return;
+  if(["выход","exit","quit"].includes(line.toLowerCase())){ inp.value = ""; return; }
+  if(line.toLowerCase().startsWith("дело ")){
+    const cat = line.slice(5).trim().toLowerCase();
+    if(!CATS.includes(cat)){ out.innerHTML = '<span class="err">Ошибка: Неизвестный кот</span>'; return; }
+    renderCases();
+    const d = data[cat];
+    out.innerHTML = "<b>Дело: " + RUS[cat] + "</b>\n" +
+      '<span class="total">Долг: ' + fmt(d.total) + " мурчиков</span>\n" +
+      '<span class="free">Подробности в карточке ниже</span>';
+    return;
+  }
+  try{
+    const [cat, articles] = parse(line);
+    const res = judge(data, cat, articles);
+    save(data);           // историю обновляем только после успешного расчёта
+    showVerdict(res, cat);
+    renderCases();
+    inp.value = "";
+  }catch(e){
+    out.innerHTML = '<span class="err">Ошибка: ' + esc(e.message) + "</span>";
+  }
+};
+inp.addEventListener("keydown", e => { if(e.key === "Enter") document.getElementById("go").click(); });
+
+// Карточки дел обоих котов
+function renderCases(){
+  for(const cat of CATS){
+    const box = document.getElementById(cat === "гоша" ? "case-gosha" : "case-tosya");
+    const d = data[cat];
+    const arts = Object.keys(d.counts).sort();
+    let html = "<b>" + RUS[cat] + "</b><div class='debt'>Долг: " + fmt(d.total) + " 🐾</div>";
+    if(arts.length){
+      html += "<ul>" + arts.map(a =>
+        "<li>" + a + " " + (NAMES[a] || "") + " — " + d.counts[a] + " р.</li>").join("") + "</ul>";
+    }else{
+      html += "<div class='none'>Нарушений нет. Пока что.</div>";
+    }
+    box.innerHTML = html;
+  }
+}
+
+// Экспорт истории в JSON (как раньше делал файл cat_codex.json)
+document.getElementById("export").onclick = () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cat_codex.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+// Полная очистка (с подтверждением)
+document.getElementById("reset").onclick = () => {
+  if(!confirm("Удалить всю историю нарушений и долги?")) return;
+  data = blank();
+  save(data);
+  renderCases();
+  out.innerHTML = '<span class="empty">История очищена. Коты реабилитированы.</span>';
+};
+
+// ===== ТЕМА (тёмная / светлая) =====
+const themeBtn = document.getElementById("theme-toggle");
+const savedTheme = localStorage.getItem("cat_theme") || "dark";
+
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeBtn.textContent = theme === "dark" ? "🌙" : "☀️";
+  localStorage.setItem("cat_theme", theme);
+}
+
+applyTheme(savedTheme);
+
+themeBtn.addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(next);
+});
+
+renderCases();
+</script>
+</body>
+</html>
