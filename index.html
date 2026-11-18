@@ -18,37 +18,312 @@
 <section class="card">
 <div class="row"><input class="input" id="input" placeholder="Гоша, 2.1(h=2.5), 1.1, 6.1"><button class="primary" id="judge">Приговор</button></div>
 <div class="articles" id="articles"></div>
-<div class="hint">Нажимай на статьи — они добавятся в протокол. Для 2.1 укажи высоту: 2.1(h=2.5). Для ночного коэффициента добавь 5.2.1.1, для сопротивления — 4.2.</div>
+<div class="hint">Нажимай на статьи — они добавятся в протокол. Для 2.1 укажи высоту: 2.1(h=2.5). Для ночного коэффициента добавь 5.2.1.1, для сопротивления — 4.2. Для 5.5 укажи статус: 5.5(pregnant=1) или 5.5(disabled=1).</div>
 </section>
 <section class="card"><div id="out" class="muted">Здесь появится приговор…</div></section>
-<!-- ВОТ ЗДЕСЬ ИСПРАВЛЕНЫ ID НА РУССКИЕ -->
 <section class="card"><div class="cases"><div class="case" id="гоша"></div><div class="case" id="тося"></div></div></section>
 <section class="card"><div class="actions"><button class="secondary" id="download">Скачать историю</button><label class="secondary" style="text-align:center">Загрузить историю<input class="file" id="upload" type="file" accept=".json,application/json"></label><button class="secondary" id="clear">Очистить</button></div><div class="small">Загрузка принимает JSON, скачанный этой программой.</div></section>
 </div>
 <script>
 'use strict';
-const CATS=['гоша','тося'],RUS={гоша:'Гоша',тося:'Тося'},KEY='cat_codex_v1';
-const FINES={'3.2.1':['Попытка по статье 3.2',200],'4.1.2':['Попытка сбежать при оформлении',300],'4.3':['Прятки во время поисков',300],'4.4':['Порча протокола',400],'5.1.1':['Мелкая кража',150],'5.1.2':['Крупная кража',400],'5.2.1':['Крики с 00:00 по 10:00',100],'5.3':['Массовые беспорядки',300],'6.1':['Наркотики',600]};
-const NAMES={'1.1':'Превышение скорости','1.2':'Незаконные гонки','2.1':'Руфинг','2.2':'Зацепинг','2.3':'Диггерство','3.1':'Нападение','3.2':'Изнасилование','3.3':'Нападение с изнасилованием','4.1':'Побег из тюрьмы','4.1.1':'Попытка побега из тюрьмы','4.1.2':'Попытка сбежать при оформлении','4.2':'Сопротивление','4.3':'Прятки во время поисков','4.4':'Порча протокола','5.1.1':'Мелкая кража','5.1.2':'Крупная кража','5.2.1':'Крики ночью','5.2.1.1':'Ночной коэффициент','5.3':'Массовые беспорядки','5.4':'Порча общества','6.1':'Наркотики','3.2.1':'Попытка по статье 3.2'};
-const ALL=[['Гоша','cat'],['Тося','cat'],['1.1','Превышение скорости'],['1.2','Незаконные гонки'],['2.1(h=2)','Руфинг'],['2.2','Зацепинг'],['2.3','Диггерство'],['3.1','Нападение'],['3.1(jail=1)','Нападение → тюрьма'],['3.2','Изнасилование'],['3.2.1','Попытка изнасилования'],['3.3','Нападение с изнасилованием'],['4.1','Побег из тюрьмы'],['4.1.1','Попытка побега'],['4.1.2','Побег при оформлении'],['4.2','Сопротивление'],['4.3','Прятки'],['4.4','Порча протокола'],['5.1.1','Мелкая кража'],['5.1.2','Крупная кража'],['5.2.1','Крики ночью'],['5.2.1.1','Ночь ×1.5'],['5.3','Беспорядки'],['5.4','Туалет вне лотка'],['6.1','Наркотики']];
-const SPECIAL=new Set(['1.1','1.2','2.1','2.2','2.3','3.1','3.2','3.3','4.1','4.1.1','4.2','5.2.1.1','5.4']);
-function blank(){return{гоша:{counts:{},total:0},тося:{counts:{},total:0}}}function load(){try{return JSON.parse(localStorage.getItem(KEY))||blank()}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(data))}let data=load();
-const inp=document.getElementById('input'),out=document.getElementById('out');
-function addText(s){if(s==='Гоша'||s==='Тося'){let i=inp.value.indexOf(',');inp.value=s+(i>=0?inp.value.slice(i):'')}else inp.value=inp.value.trim()?(inp.value+', '+s):'Гоша, '+s;inp.focus()}
-const ab=document.getElementById('articles');ALL.forEach(([v,label])=>{let b=document.createElement('button');b.className='article';b.textContent=label+' ['+v+']';b.onclick=()=>addText(v);ab.appendChild(b)});
-function yes(v){if(v!=='0'&&v!=='1')throw Error('Указывай 0 или 1');return v==='1'}
-function parse(line){let p=line.split(',').map(x=>x.trim()),cat=p.shift().toLowerCase();if(!CATS.includes(cat)||!p.length)throw Error('Формат: Гоша, 1.1, 2.1(h=2.5)');let a=p.map(x=>{let m=/^(\d+(?:\.\d+)*)(?:\s*\(([^()]*)\))?$/.exec(x);if(!m)throw Error('Неверная статья: '+x);let art=m[1],q={};if(!SPECIAL.has(art)&&!(art in FINES))throw Error('Неизвестная статья '+art);if(m[2])m[2].split(';').forEach(z=>{let [k,v]=z.split('=');if(!v)throw Error('Параметр должен быть key=value');q[k.trim()]=v.trim().toLowerCase()});return[art,q]});return[cat,a]}
-function roof(q){if(!('h'in q))throw Error('Для 2.1 укажи h, например 2.1(h=2.5)');let h=Number(q.h);if(!isFinite(h)||h<0)throw Error('Высота должна быть неотрицательным числом');if(q.allowed&&yes(q.allowed))return null;if(h<1.5&&!(q.important&&yes(q.important)))return null;return h<=2?100:h<=3?300:500}
-function fmt(x){return Number.isInteger(x)?String(x):String(Math.round(x*10)/10)}
-function judge(cat,arts){let cnt={...data[cat].counts},entries=[],jail=[],sum=0,night=arts.some(x=>x[0]==='5.2.1.1'),resist=arts.some(x=>x[0]==='4.2');for(let [art,q]of arts){if(art==='4.2'||art==='5.2.1.1')continue;let n=(cnt[art]||0)+1,fine=0,sen='',name=NAMES[art]||FINES[art]?.[0]||art;if(FINES[art])fine=FINES[art][1];else if(art==='1.1')fine=n%4?100:0,sen=n%4?'':'тюрьма';else if(art==='1.2')fine=n%4?200:0,sen=n%4?'':'тюрьма';else if(art==='2.1'){let x=roof(q);if(x===null){entries.push({t:'2.1 Руфинг: нарушение не считается',c:'muted'});continue}fine=n%4?x:0;sen=n%4?'':'тюрьма'}else if(art==='2.2'){let k=n%7; if(!k)sen='тюрьма';else fine=k<=3?600:1000}else if(art==='2.3'){fine=n%2?800:0;sen=n%2?'':'тюрьма'}else if(art==='3.1'){fine=q.jail&&yes(q.jail)?0:400;sen=q.jail&&yes(q.jail)?'тюрьма (решение судьи)':''}else if(art==='3.2')sen='тюрьма';else if(art==='3.3'){fine=500;sen='тюрьма'}else if(art==='4.1')sen='увеличение срока';else if(art==='4.1.1')sen='продление срока';else if(art==='5.4'){fine=n%3?500:0;sen=n%3?'':'тюрьма'}cnt[art]=n;let mult=(night?1.5:1)*(resist?1.5:1),amount=fine*mult;sum+=amount;let t=art+' '+name+': '+(fine?fmt(amount)+' мурчиков':'без штрафа');if(sen){t+=' + '+sen;jail.push(art+': '+sen)}if(['1.1','1.2','2.1','2.2','2.3','5.4'].includes(art))t+=' (случай №'+n+')';entries.push({t,c:sen?'jail':''})}if(night)entries.push({t:'5.2.1.1: ночной коэффициент ×1.5',c:'muted'});if(resist)entries.push({t:'4.2: коэффициент сопротивления ×1.5',c:'muted'});data[cat].counts=cnt;data[cat].total+=sum;return{entries,sum,jail}}
-function esc(s){let d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function render(res,cat){let h='<b>Дело: '+RUS[cat]+'</b>\n';res.entries.forEach(x=>h+='<span class="'+x.c+'">'+esc(x.t)+'</span>\n');h+='<span class="total">Итого: '+fmt(res.sum)+' мурчиков</span>';if(res.jail.length)h+='\n<span class="jail">Тюрьма / продление: '+esc(res.jail.join('; '))+'</span>';out.innerHTML=h}
-function cases(){CATS.forEach(c=>{let d=data[c],box=document.getElementById(c),a=Object.keys(d.counts).sort();box.innerHTML='<b>'+RUS[c]+'</b><div class="debt">Долг: '+fmt(d.total)+' 🐾</div>'+(a.length?'<ul>'+a.map(x=>'<li>'+x+' '+(NAMES[x]||'')+' — '+d.counts[x]+' раз</li>').join('')+'</ul>':'<div class="muted">Нарушений нет.</div>')})}
-document.getElementById('judge').onclick=()=>{try{let[c,a]=parse(inp.value.trim()),r=judge(c,a);save();render(r,c);cases();inp.value=''}catch(e){out.innerHTML='<span class="err">Ошибка: '+esc(e.message)+'</span>'}};inp.onkeydown=e=>{if(e.key==='Enter')document.getElementById('judge').click()};
-document.getElementById('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='cat_codex.json';a.click()};
-document.getElementById('upload').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.гоша||!x.тося||typeof x.гоша.total!=='number'&&typeof x.гоша.total!=='string')throw Error();data=x;save();cases();out.innerHTML='<span class="total">История загружена.</span>'}catch(err){out.innerHTML='<span class="err">Ошибка: файл истории повреждён.</span>'}};r.readAsText(f)};
-document.getElementById('clear').onclick=()=>{if(confirm('Удалить всю историю?')){data=blank();save();cases();out.textContent='История очищена.'}};
-let theme=localStorage.getItem('cat_theme')||'dark';function setTheme(x){document.documentElement.dataset.theme=x;document.getElementById('theme').textContent=x==='dark'?'🌙':'☀️';localStorage.setItem('cat_theme',x)}setTheme(theme);document.getElementById('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');cases();
+const CATS=['гоша','тося'], RUS={гоша:'Гоша', тося:'Тося'}, KEY='cat_codex_v1';
+
+// Базовые штрафы для простых статей
+const FINES = {
+  '3.2.1': ['Попытка по статье 3.2', 200],
+  '4.1.2': ['Попытка сбежать при оформлении', 300],
+  '4.3':   ['Прятки во время поисков', 300],
+  '4.4':   ['Порча протокола', 400],
+  '5.1.1': ['Мелкая кража', 150],
+  '5.1.2': ['Крупная кража', 400],
+  '5.2.1': ['Крики с 00:00 по 10:00', 100],
+  '5.3':   ['Массовые беспорядки', 300],
+  '6.1':   ['Наркотики', 600],
+  '5.5':   ['Доедание еды за другими', 400]
+};
+
+const NAMES = {
+  '1.1': 'Превышение скорости',
+  '1.2': 'Незаконные гонки',
+  '2.1': 'Руфинг',
+  '2.2': 'Зацепинг',
+  '2.3': 'Диггерство',
+  '3.1': 'Нападение',
+  '3.2': 'Изнасилование',
+  '3.3': 'Нападение с изнасилованием',
+  '4.1': 'Побег из тюрьмы',
+  '4.1.1': 'Попытка побега из тюрьмы',
+  '4.1.2': 'Попытка сбежать при оформлении',
+  '4.2': 'Сопротивление',
+  '4.3': 'Прятки во время поисков',
+  '4.4': 'Порча протокола',
+  '5.1.1': 'Мелкая кража',
+  '5.1.2': 'Крупная кража',
+  '5.2.1': 'Крики ночью',
+  '5.2.1.1': 'Ночной коэффициент',
+  '5.3': 'Массовые беспорядки',
+  '5.4': 'Порча общества (туалет вне лотка)',
+  '5.5': 'Доедание еды за другими',
+  '6.1': 'Наркотики',
+  '3.2.1': 'Попытка изнасилования'
+};
+
+// Все статьи для меню
+const ALL = [
+  ['Гоша','cat'], ['Тося','cat'],
+  ['1.1','Превышение скорости'], ['1.2','Незаконные гонки'],
+  ['2.1(h=2)','Руфинг'], ['2.2','Зацепинг'], ['2.3','Диггерство'],
+  ['3.1','Нападение'], ['3.1(jail=1)','Нападение → тюрьма'],
+  ['3.2','Изнасилование'], ['3.2.1','Попытка изнасилования'],
+  ['3.3','Нападение с изнасилованием'],
+  ['4.1','Побег из тюрьмы'], ['4.1.1','Попытка побега'], ['4.1.2','Побег при оформлении'],
+  ['4.2','Сопротивление'], ['4.3','Прятки'], ['4.4','Порча протокола'],
+  ['5.1.1','Мелкая кража'], ['5.1.2','Крупная кража'],
+  ['5.2.1','Крики ночью'], ['5.2.1.1','Ночь ×1.5'],
+  ['5.3','Беспорядки'], ['5.4','Туалет вне лотка'],
+  ['5.5','Доедание еды'], ['5.5(pregnant=1)','Доедание (беременная/инвалид)'],
+  ['6.1','Наркотики']
+];
+
+// Статьи со специальной логикой
+const SPECIAL = new Set([
+  '1.1','1.2','2.1','2.2','2.3','3.1','3.2','3.3',
+  '4.1','4.1.1','4.2','5.2.1.1','5.4','5.5'
+]);
+
+function blank(){return{гоша:{counts:{},total:0}, тося:{counts:{},total:0}}}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||blank()}catch(e){return blank()}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+let data = load();
+
+const inp = document.getElementById('input');
+const out = document.getElementById('out');
+
+function addText(s){
+  if(s==='Гоша'||s==='Тося'){
+    let i = inp.value.indexOf(',');
+    inp.value = s + (i>=0 ? inp.value.slice(i) : '');
+  }else{
+    inp.value = inp.value.trim() ? (inp.value + ', ' + s) : 'Гоша, ' + s;
+  }
+  inp.focus();
+}
+
+const ab = document.getElementById('articles');
+ALL.forEach(([v,label])=>{
+  let b = document.createElement('button');
+  b.className = 'article';
+  b.textContent = label + ' [' + v + ']';
+  b.onclick = () => addText(v);
+  ab.appendChild(b);
+});
+
+function yes(v){ if(v!=='0'&&v!=='1') throw Error('Указывай 0 или 1'); return v==='1' }
+
+function parse(line){
+  let p = line.split(',').map(x=>x.trim());
+  let cat = p.shift().toLowerCase();
+  if(!CATS.includes(cat) || !p.length) throw Error('Формат: Гоша, 1.1, 2.1(h=2.5)');
+  let a = p.map(x=>{
+    let m = /^(\d+(?:\.\d+)*)(?:\s*\(([^()]*)\))?$/.exec(x);
+    if(!m) throw Error('Неверная статья: '+x);
+    let art = m[1], q={};
+    if(!SPECIAL.has(art) && !(art in FINES)) throw Error('Неизвестная статья '+art);
+    if(m[2]) m[2].split(';').forEach(z=>{
+      let [k,v] = z.split('=');
+      if(!v) throw Error('Параметр должен быть key=value');
+      q[k.trim()] = v.trim().toLowerCase();
+    });
+    return [art, q];
+  });
+  return [cat, a];
+}
+
+function roof(q){
+  if(!('h' in q)) throw Error('Для 2.1 укажи h, например 2.1(h=2.5)');
+  let h = Number(q.h);
+  if(!isFinite(h) || h < 0) throw Error('Высота должна быть неотрицательным числом');
+  if(q.allowed && yes(q.allowed)) return null;
+  if(h < 1.5 && !(q.important && yes(q.important))) return null;
+  return h <= 2 ? 100 : h <= 3 ? 300 : 500;
+}
+
+function fmt(x){ return Number.isInteger(x) ? String(x) : String(Math.round(x*10)/10) }
+
+function judge(cat, arts){
+  let cnt = {...data[cat].counts};
+  let entries = [], jail = [], sum = 0;
+  let night = arts.some(x => x[0] === '5.2.1.1');
+  let resist = arts.some(x => x[0] === '4.2');
+
+  for(let [art, q] of arts){
+    if(art === '4.2' || art === '5.2.1.1') continue;
+
+    let n = (cnt[art] || 0) + 1;
+    let fine = 0, sen = '';
+    let name = NAMES[art] || FINES[art]?.[0] || art;
+
+    if(FINES[art]){
+      fine = FINES[art][1];
+      // 5.5 с коэффициентом для беременных/инвалидов
+      if(art === '5.5' && (q.pregnant || q.disabled) && yes(q.pregnant || q.disabled)){
+        fine = 800;
+      }
+    }
+    else if(art === '1.1'){
+      fine = n % 4 ? 100 : 0;
+      sen = n % 4 ? '' : 'тюрьма';
+    }
+    else if(art === '1.2'){
+      fine = n % 4 ? 200 : 0;
+      sen = n % 4 ? '' : 'тюрьма';
+    }
+    else if(art === '2.1'){
+      let x = roof(q);
+      if(x === null){
+        entries.push({t: '2.1 Руфинг: нарушение не считается', c: 'muted'});
+        continue;
+      }
+      fine = n % 4 ? x : 0;
+      sen = n % 4 ? '' : 'тюрьма';
+    }
+    else if(art === '2.2'){
+      let k = n % 7;
+      if(!k) sen = 'тюрьма';
+      else fine = k <= 3 ? 600 : 1000;
+    }
+    else if(art === '2.3'){
+      fine = n % 2 ? 800 : 0;
+      sen = n % 2 ? '' : 'тюрьма';
+    }
+    else if(art === '3.1'){
+      fine = q.jail && yes(q.jail) ? 0 : 400;
+      sen = q.jail && yes(q.jail) ? 'тюрьма (решение судьи)' : '';
+    }
+    else if(art === '3.2'){
+      sen = 'тюрьма';
+    }
+    else if(art === '3.3'){
+      fine = 500;
+      sen = 'тюрьма';
+    }
+    else if(art === '4.1'){
+      sen = 'увеличение срока';
+    }
+    else if(art === '4.1.1'){
+      sen = 'продление срока';
+    }
+    else if(art === '5.4'){
+      fine = n % 3 ? 500 : 0;
+      sen = n % 3 ? '' : 'тюрьма';
+    }
+
+    cnt[art] = n;
+    let mult = (night ? 1.5 : 1) * (resist ? 1.5 : 1);
+    let amount = fine * mult;
+    sum += amount;
+
+    let t = art + ' ' + name + ': ' + (fine ? fmt(amount) + ' мурчиков' : 'без штрафа');
+    if(sen){
+      t += ' + ' + sen;
+      jail.push(art + ': ' + sen);
+    }
+    if(['1.1','1.2','2.1','2.2','2.3','5.4'].includes(art)){
+      t += ' (случай №' + n + ')';
+    }
+    entries.push({t, c: sen ? 'jail' : ''});
+  }
+
+  if(night) entries.push({t: '5.2.1.1: ночной коэффициент ×1.5', c: 'muted'});
+  if(resist) entries.push({t: '4.2: коэффициент сопротивления ×1.5', c: 'muted'});
+
+  data[cat].counts = cnt;
+  data[cat].total += sum;
+  return {entries, sum, jail};
+}
+
+function esc(s){
+  let d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function render(res, cat){
+  let h = '<b>Дело: ' + RUS[cat] + '</b>\n';
+  res.entries.forEach(x => h += '<span class="' + x.c + '">' + esc(x.t) + '</span>\n');
+  h += '<span class="total">Итого: ' + fmt(res.sum) + ' мурчиков</span>';
+  if(res.jail.length) h += '\n<span class="jail">Тюрьма / продление: ' + esc(res.jail.join('; ')) + '</span>';
+  out.innerHTML = h;
+}
+
+function cases(){
+  CATS.forEach(c => {
+    let d = data[c];
+    let box = document.getElementById(c);
+    let a = Object.keys(d.counts).sort();
+    box.innerHTML = '<b>' + RUS[c] + '</b><div class="debt">Долг: ' + fmt(d.total) + ' 🐾</div>' +
+      (a.length ? '<ul>' + a.map(x => '<li>' + x + ' ' + (NAMES[x] || '') + ' — ' + d.counts[x] + ' раз</li>').join('') + '</ul>' : '<div class="muted">Нарушений нет.</div>');
+  });
+}
+
+document.getElementById('judge').onclick = () => {
+  try{
+    let [c, a] = parse(inp.value.trim());
+    let r = judge(c, a);
+    save();
+    render(r, c);
+    cases();
+    inp.value = '';
+  }catch(e){
+    out.innerHTML = '<span class="err">Ошибка: ' + esc(e.message) + '</span>';
+  }
+};
+inp.onkeydown = e => { if(e.key === 'Enter') document.getElementById('judge').click() };
+
+document.getElementById('download').onclick = () => {
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+  a.download = 'cat_codex.json';
+  a.click();
+};
+
+document.getElementById('upload').onchange = e => {
+  let f = e.target.files[0];
+  if(!f) return;
+  let r = new FileReader();
+  r.onload = () => {
+    try{
+      let x = JSON.parse(r.result);
+      if(!x.гоша || !x.тося) throw Error();
+      data = x;
+      save();
+      cases();
+      out.innerHTML = '<span class="total">История загружена.</span>';
+    }catch(err){
+      out.innerHTML = '<span class="err">Ошибка: файл истории повреждён.</span>';
+    }
+  };
+  r.readAsText(f);
+};
+
+document.getElementById('clear').onclick = () => {
+  if(confirm('Удалить всю историю?')){
+    data = blank();
+    save();
+    cases();
+    out.textContent = 'История очищена.';
+  }
+};
+
+let theme = localStorage.getItem('cat_theme') || 'dark';
+function setTheme(x){
+  document.documentElement.dataset.theme = x;
+  document.getElementById('theme').textContent = x === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('cat_theme', x);
+}
+setTheme(theme);
+document.getElementById('theme').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+cases();
 </script>
 </body>
 </html>
