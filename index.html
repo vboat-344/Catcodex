@@ -1,154 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <meta name="theme-color" content="#16130f">
-  <title>Кошачий кодекс</title>
-  <style>
-    :root{--bg:#16130f;--card:#221d16;--card2:#2b241b;--line:#3d3427;--text:#f2e9dc;--muted:#a9987f;--amber:#ffb347;--amber2:#ff8c1a;--ok:#8fce6a;--err:#ff7b6b;--jail:#ff5c5c}
-    [data-theme="light"]{--bg:#f5f5f0;--card:#ffffff;--card2:#fafafa;--line:#ddd;--text:#222;--muted:#666;--amber:#e67e22;--amber2:#d35400;--ok:#4caf50;--err:#e74c3c;--jail:#c0392b}
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;transition:bg .3s,color .3s}
-    .wrap{max-width:560px;margin:0 auto;padding:16px 14px 40px}
-    .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-    h1{font-size:22px;margin:0;display:flex;align-items:center;gap:8px}
-    .theme-toggle{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:6px 10px;cursor:pointer;font-size:14px}
-    .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
-    .inputrow{display:flex;gap:8px}
-    #inp{flex:1;min-width:0;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:12px;font-size:16px}
-    #inp:focus{outline:none;border-color:var(--amber)}
-    .btn{background:linear-gradient(180deg,var(--amber),var(--amber2));color:#241a08;border:none;border-radius:10px;padding:12px 16px;font-size:15px;font-weight:700;cursor:pointer}
-    .btn:active{transform:scale(.97)}
-    .hint{color:var(--muted);font-size:12.5px;margin-top:8px}
-    .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-    .chip{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:7px 12px;font-size:13.5px;cursor:pointer;user-select:none}
-    .chip:active{border-color:var(--amber)}
-    .chip.mod{border-color:#6b5326;color:var(--amber)}
-    .chip.cat{font-weight:700}
-    #out{white-space:pre-wrap;font-size:14.5px}
-    #out .err{color:var(--err)}
-    #out .total{color:var(--amber);font-weight:700;font-size:15.5px}
-    #out .jail{color:var(--jail)}
-    #out .free{color:var(--muted)}
-    .empty{color:var(--muted);font-size:14px}
-    .cases{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .case{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px}
-    .case b{font-size:15px}
-    .case .debt{color:var(--amber);font-weight:700;margin-top:4px}
-    .case ul{margin:7px 0 0;padding-left:16px;color:var(--muted);font-size:12.5px}
-    .case .none{color:var(--muted);font-size:12.5px;margin-top:6px}
-    .foot{display:flex;gap:8px;margin-top:4px}
-    .ghost{flex:1;background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:10px;font-size:13px;cursor:pointer}
-    .ghost:active{color:var(--text);border-color:var(--amber)}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#16130f">
+<title>Кошачий кодекс</title>
+<style>
+:root{--bg:#16130f;--card:#241e17;--card2:#30271e;--line:#493b2d;--text:#f3e8d8;--muted:#ad9b83;--accent:#ffad3d;--danger:#ff7166}
+[data-theme=light]{--bg:#f4f1eb;--card:#fff;--card2:#f5f2ed;--line:#d9d1c6;--text:#25211d;--muted:#70675c;--accent:#d66b0b;--danger:#bd3028}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,sans-serif}.wrap{max-width:620px;margin:auto;padding:16px 14px 40px}.head{display:flex;justify-content:space-between;align-items:center}h1{font-size:23px;margin:0}.sub{color:var(--muted);font-size:13px;margin:3px 0 15px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 14px}.row{display:flex;gap:8px}.input{flex:1;min-width:0;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:12px;font-size:16px}.input:focus{outline:none;border-color:var(--accent)}button{cursor:pointer}.primary{border:0;border-radius:10px;padding:11px 15px;background:linear-gradient(#ffc15e,#ee8516);color:#241707;font-weight:700}.theme,.secondary,.article{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 10px}.theme{font-size:16px}.hint{color:var(--muted);font-size:12px;margin-top:8px}.articles{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}.article{font-size:13px}.article:hover{border-color:var(--accent)}#out{white-space:pre-wrap;font-size:14px}.total{color:var(--accent);font-weight:700}.jail{color:var(--danger);font-weight:700}.muted{color:var(--muted)}.err{color:var(--danger)}.cases{display:grid;grid-template-columns:1fr 1fr;gap:10px}.case{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:10px}.case b{font-size:15px}.debt{color:var(--accent);font-weight:700}.case ul{margin:7px 0 0;padding-left:17px;color:var(--muted);font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.secondary{flex:1;min-width:135px}.file{display:none}.small{font-size:12px;color:var(--muted);margin-top:8px}@media(max-width:430px){.row{flex-direction:column}.cases{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div class="wrap">
-  <div class="header-row">
-    <h1>🐾 Кошачий кодекс</h1>
-    <button class="theme-toggle" id="theme-toggle" aria-label="Сменить тему">🌙</button>
-  </div>
-  <div class="sub">Протоколы, штрафы и тюрьма для Гоши и Тоси</div>
-  <div class="card">
-    <div class="inputrow">
-      <input id="inp" placeholder="Гоша, 2.1(h=2.5), 1.1, 6.1" autocomplete="off">
-      <button class="btn" id="go">Приговор</button>
-    </div>
-    <div class="chips" id="chips"></div>
-    <div class="hint">2.1 – укажи высоту (h), important=1 – важное место, allowed=1 – разрешено. 3.1(jail=1) – тюрьма вместо штрафа.</div>
-  </div>
-  <div class="card"><div id="out"><span class="empty">Здесь появится приговор…</span></div></div>
-  <div class="card">
-    <div class="cases">
-      <div class="case" id="case-gosha"></div>
-      <div class="case" id="case-tosya"></div>
-    </div>
-  </div>
-  <div class="foot">
-    <button class="ghost" id="export">Скачать историю (JSON)</button>
-    <button class="ghost" id="reset">Очистить историю</button>
-  </div>
+<header class="head"><h1>🐾 Кошачий кодекс</h1><button class="theme" id="theme">🌙</button></header>
+<div class="sub">Протоколы, штрафы и тюрьма для Гоши и Тоси</div>
+<section class="card">
+<div class="row"><input class="input" id="input" placeholder="Гоша, 2.1(h=2.5), 1.1, 6.1"><button class="primary" id="judge">Приговор</button></div>
+<div class="articles" id="articles"></div>
+<div class="hint">Нажимай на статьи — они добавятся в протокол. Для 2.1 укажи высоту: 2.1(h=2.5). Для ночного коэффициента добавь 5.2.1.1, для сопротивления — 4.2.</div>
+</section>
+<section class="card"><div id="out" class="muted">Здесь появится приговор…</div></section>
+<!-- ВОТ ЗДЕСЬ ИСПРАВЛЕНЫ ID НА РУССКИЕ -->
+<section class="card"><div class="cases"><div class="case" id="гоша"></div><div class="case" id="тося"></div></div></section>
+<section class="card"><div class="actions"><button class="secondary" id="download">Скачать историю</button><label class="secondary" style="text-align:center">Загрузить историю<input class="file" id="upload" type="file" accept=".json,application/json"></label><button class="secondary" id="clear">Очистить</button></div><div class="small">Загрузка принимает JSON, скачанный этой программой.</div></section>
 </div>
 <script>
-"use strict";
-const CATS=["гоша","тося"];
-const RUS={"гоша":"Гоша","тося":"Тося"};
-const FINES={
-  "4.1.2":["Попытка сбежать при оформлении",300],
-  "5.1.1":["Мелкая кража",150],
-  "5.1.2":["Крупная кража",400],
-  "5.2.1":["Крики с 00:00 по 10:00",100],
-  "5.3":["Массовые беспорядки",300],
-  "5.4":["Порча общества (туалет вне лотка)",500],
-  "6.1":["Наркотики",600],
-  "3.2.1":["Попытка по статье 3.2",200],
-  "4.3":["Прятки во время поисков",300],
-  "4.4":["Порча протокола",400]
-};
-const SPECIAL=new Set(["1.1","1.2","2.1","2.2","2.3","3.1","3.2","3.3","4.1","4.1.1","4.2","5.2.1.1","5.4"]);
-const NAMES={
-  "1.1":"Превышение скорости","1.2":"Незаконные гонки",
-  "2.1":"Руфинг","2.2":"Зацепинг","2.3":"Диггерство",
-  "3.1":"Нападение","3.2":"Изнасилование","3.3":"Нападение с изнасилованием",
-  "4.1":"Побег из тюрьмы","4.1.1":"Попытка побега из тюрьмы","4.1.2":"Попытка сбежать при оформлении","4.2":"Сопротивление при задержании",
-  "4.3":"Прятки во время поисков","4.4":"Порча протокола",
-  "5.1.1":"Мелкая кража","5.1.2":"Крупная кража","5.2.1":"Крики с 00:00 по 10:00","5.2.1.1":"Ночной коэффициент","5.3":"Массовые беспорядки","5.4":"Порча общества (туалет вне лотка)",
-  "6.1":"Наркотики","3.2.1":"Попытка по статье 3.2"
-};
-const ALLOWED_PARAMS={"2.1":new Set(["h","important","allowed"]),"3.1":new Set(["jail"])};
-const CHIPS=[
-  {t:"Гоша",cat:true},{t:"Тося",cat:true},
-  {t:"1.1 скорость"},{t:"1.2 гонки"},{t:"2.1(h=2) руфинг"},{t:"2.2 зацепинг"},{t:"2.3 диггерство"},
-  {t:"3.1 нападение"},{t:"5.1.1 кража"},{t:"6.1 наркотики"},{t:"5.2.1 крики"},{t:"5.3 беспорядки"},
-  {t:"4.1.2 сбег при оформлении"},{t:"5.2.1.1 ночь",mod:true},{t:"4.2 сопротивление",mod:true},
-  {t:"4.3 прятки",mod:true},{t:"4.4 порча протокола",mod:true},{t:"5.4 туалет",mod:true}
-];
-const KEY="cat_codex_v1";
-function blank(){return {"гоша":{counts:{},total:0},"тося":{counts:{},total:0}};}
-function load(){try{let d=JSON.parse(localStorage.getItem(KEY));if(!d)return blank();for(let c of CATS)if(!d[c])d[c]={counts:{},total:0};return d}catch(e){return blank();}}
-function save(d){localStorage.setItem(KEY,JSON.stringify(d));}
-const RE=/^(\d+(?:\.\d+)*)(?:\s*\(([^()]*)\))?$/;
-function parse(line){let parts=line.split(",").map(s=>s.trim());if(parts.length<2||!CATS.includes(parts[0].toLowerCase()))throw new Error("Формат: Гоша, 1.1, 2.1(h=2.5), 6.1");let arts=[];for(let item of parts.slice(1)){let m=RE.exec(item);if(!m)throw new Error("Неверная статья: "+item);let art=m[1],raw=m[2];if(!SPECIAL.has(art)&&!(art in FINES))throw new Error("Неизвестная статья "+art);let params={};if(raw){for(let pair of raw.split(";")){if(!pair.includes("="))throw new Error("Параметр должен быть key=value: "+pair);let [k,v]=pair.split("=");k=k.trim();v=v.trim().toLowerCase();if(k in params)throw new Error("Повтор параметра "+k);params[k]=v;}let allowed=ALLOWED_PARAMS[art];let unknown=Object.keys(params).filter(k=>!allowed||!allowed.has(k));if(unknown.length)throw new Error("У статьи "+art+" нет параметров: "+unknown.join(", "));}
-arts.push([art,params]);}
-return [parts[0].toLowerCase(),arts];}
-function yes(v){if(v!="0"&&v!="1")throw new Error("Указывай 0 или 1");return v==="1";}
-function rooftop(p){if(!("h"in p))throw new Error("Для 2.1 укажи высоту h");let h=Number(p.h);if(!isFinite(h))throw new Error("h должно быть числом");if("allowed"in p&&yes(p.allowed))return null;if(h<1.5&&!("important"in p&&yes(p.important)))return null;if(h<=2)return 100;if(h<=3)return 300;return 500;}
-function judge(data,cat,arts){let cnt=Object.assign({},data[cat].counts);let out=[], jail=[];let sum=0;let night=arts.some(a=>a[0]==="5.2.1.1");let resist=arts.some(a=>a[0]==="4.2");
-for(let [art,par]of arts){if(art==="4.2"||art==="5.2.1.1")continue;let n=(cnt[art]||0)+1;let fine=0,sen="",name="";
-if(art in FINES){[name,fine]=FINES[art];}
-else if(art==="1.1"||art==="1.2"){let cfg={"1.1":["Превышение скорости",100],"1.2":["Незаконные гонки",200]}[art];name=cfg[0];fine=(n%4===0)?0:cfg[1];if(n%4===0)sen="тюрьма";}
-else if(art==="2.1"){name="Руфинг";let amt=rooftop(par);if(amt===null){out.push({cls:"free",text:"2.1 Руфинг: нарушение не считается"});continue;}fine=(n%4===0)?0:amt;if(n%4===0)sen="тюрьма";}
-else if(art==="2.2"){name="Зацепинг";if(n%7===0)sen="тюрьма";else fine=(n%7)<=3?600:1000;}
-else if(art==="2.3"){name="Диггерство";if(n%2===0)sen="тюрьма";else fine=800;}
-else if(art==="3.1"){name="Нападение";if("jail"in par&&yes(par.jail))sen="тюрьма (решение судьи)";else fine=400;}
-else if(art==="3.2"){name="Изнасилование";sen="тюрьма";}
-else if(art==="3.3"){name="Нападение с изнасилованием";fine=500;sen="тюрьма";}
-else if(art==="4.1"){name="Побег из тюрьмы";sen="увеличение срока";}
-else if(art==="4.1.1"){name="Попытка побега из тюрьмы";sen="продление срока";}
-else if(art==="5.4"){name="Порча общества (туалет вне лотка)";if(n%3===0)sen="тюрьма";else fine=500;}
-cnt[art]=n;let mult=1;if(night&&art!="5.2.1")mult*=1.5;if(resist)mult*=1.5;let amount=fine*mult;sum+=amount;let txt=art+" "+name+": "+(fine?fmt(amount)+" мурчиков":"без штрафа");if(sen){txt+=" + "+sen;jail.push(art+": "+sen);}if(["1.1","1.2","2.1","2.2","2.3","5.4"].includes(art))txt+=" (случай №"+n+")";out.push({cls:sen?"jail":"",text:txt});}
-if(night)out.push({cls:"free",text:"5.2.1.1: ночной коэффициент ×1.5 к другим штрафам"});
-if(resist)out.push({cls:"free",text:"4.2: коэффициент сопротивления ×1.5 к штрафам"});
-data[cat].counts=cnt;data[cat].total+=sum;return {entries:out,base:sum,jail};}
-function fmt(x){let s=(Math.round(x*10)/10).toString();return s.endsWith('.0')?s.slice(0,-2):s;}
-const inp=document.getElementById('inp');
-const out=document.getElementById('out');
-let data=load();
-// chips UI
-const chipBox=document.getElementById('chips');
-CHIPS.forEach(c=>{let b=document.createElement('button');b.className='chip'+(c.mod?' mod':'')+(c.cat?' cat':'');b.textContent=c.t;let art=c.t.split(' ')[0];b.onclick=()=>{if(c.cat){let rest=inp.value.includes(',')?inp.value.slice(inp.value.indexOf(',')+1):'';inp.value=c.t+rest;}else{inp.value=inp.value.trim()? (CATS.some(x=>inp.value.toLowerCase().startsWith(x))?inp.value.trimEnd()+', '+art:inp.value.trimEnd()+', '+art) : 'Гоша, '+art;}};chipBox.appendChild(b);});
-function esc(s){let d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-function show(res,cat){let html='<b>Дело: '+RUS[cat]+'</b>\n';res.entries.forEach(e=>{html+='<span class="'+e.cls+'">'+esc(e.text)+'</span>\n';});html+='<span class="total">Итого: '+fmt(res.base)+' мурчиков</span>';if(res.jail.length)html+='\n<span class="jail">Тюрьма/продление: '+esc(res.jail.join('; '))+'</span>';out.innerHTML=html;}
-document.getElementById('go').onclick=()=>{let line=inp.value.trim();if(!line)return;try{let [cat,arts]=parse(line);let res=judge(data,cat,arts);save(data);show(res,cat);renderCases();inp.value='';}catch(e){out.innerHTML='<span class="err">Ошибка: '+esc(e.message)+'</span>';}};
-function renderCases(){CATS.forEach(cat=>{let box=document.getElementById(cat==='гоша'?'case-gosha':'case-tosya');let d=data[cat];let arts=Object.keys(d.counts).sort();let html='<b>'+RUS[cat]+'</b><div class="debt">Долг: '+fmt(d.total)+' 🐾</div>';if(arts.length){html+='<ul>'+arts.map(a=>'<li>'+a+' '+(NAMES[a]||'')+' — '+d.counts[a]+' раз</li>').join('')+'</ul>';}else{html+='<div class="none">Нарушений нет.</div>';}
-box.innerHTML=html;});}
-document.getElementById('export').onclick=()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cat_codex.json';a.click();URL.revokeObjectURL(a.href);};
-document.getElementById('reset').onclick=()=>{if(!confirm('Удалить всю историю?'))return;data=blank();save(data);renderCases();out.innerHTML='<span class="empty">История очищена.</span>';};
-const themeBtn=document.getElementById('theme-toggle');let curTheme=localStorage.getItem('cat_theme')||'dark';function apply(t){document.documentElement.setAttribute('data-theme',t);themeBtn.textContent=t==='dark'?'🌙':'☀️';localStorage.setItem('cat_theme',t);}apply(curTheme);themeBtn.addEventListener('click',()=>{apply(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
-renderCases();
+'use strict';
+const CATS=['гоша','тося'],RUS={гоша:'Гоша',тося:'Тося'},KEY='cat_codex_v1';
+const FINES={'3.2.1':['Попытка по статье 3.2',200],'4.1.2':['Попытка сбежать при оформлении',300],'4.3':['Прятки во время поисков',300],'4.4':['Порча протокола',400],'5.1.1':['Мелкая кража',150],'5.1.2':['Крупная кража',400],'5.2.1':['Крики с 00:00 по 10:00',100],'5.3':['Массовые беспорядки',300],'6.1':['Наркотики',600]};
+const NAMES={'1.1':'Превышение скорости','1.2':'Незаконные гонки','2.1':'Руфинг','2.2':'Зацепинг','2.3':'Диггерство','3.1':'Нападение','3.2':'Изнасилование','3.3':'Нападение с изнасилованием','4.1':'Побег из тюрьмы','4.1.1':'Попытка побега из тюрьмы','4.1.2':'Попытка сбежать при оформлении','4.2':'Сопротивление','4.3':'Прятки во время поисков','4.4':'Порча протокола','5.1.1':'Мелкая кража','5.1.2':'Крупная кража','5.2.1':'Крики ночью','5.2.1.1':'Ночной коэффициент','5.3':'Массовые беспорядки','5.4':'Порча общества','6.1':'Наркотики','3.2.1':'Попытка по статье 3.2'};
+const ALL=[['Гоша','cat'],['Тося','cat'],['1.1','Превышение скорости'],['1.2','Незаконные гонки'],['2.1(h=2)','Руфинг'],['2.2','Зацепинг'],['2.3','Диггерство'],['3.1','Нападение'],['3.1(jail=1)','Нападение → тюрьма'],['3.2','Изнасилование'],['3.2.1','Попытка изнасилования'],['3.3','Нападение с изнасилованием'],['4.1','Побег из тюрьмы'],['4.1.1','Попытка побега'],['4.1.2','Побег при оформлении'],['4.2','Сопротивление'],['4.3','Прятки'],['4.4','Порча протокола'],['5.1.1','Мелкая кража'],['5.1.2','Крупная кража'],['5.2.1','Крики ночью'],['5.2.1.1','Ночь ×1.5'],['5.3','Беспорядки'],['5.4','Туалет вне лотка'],['6.1','Наркотики']];
+const SPECIAL=new Set(['1.1','1.2','2.1','2.2','2.3','3.1','3.2','3.3','4.1','4.1.1','4.2','5.2.1.1','5.4']);
+function blank(){return{гоша:{counts:{},total:0},тося:{counts:{},total:0}}}function load(){try{return JSON.parse(localStorage.getItem(KEY))||blank()}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(data))}let data=load();
+const inp=document.getElementById('input'),out=document.getElementById('out');
+function addText(s){if(s==='Гоша'||s==='Тося'){let i=inp.value.indexOf(',');inp.value=s+(i>=0?inp.value.slice(i):'')}else inp.value=inp.value.trim()?(inp.value+', '+s):'Гоша, '+s;inp.focus()}
+const ab=document.getElementById('articles');ALL.forEach(([v,label])=>{let b=document.createElement('button');b.className='article';b.textContent=label+' ['+v+']';b.onclick=()=>addText(v);ab.appendChild(b)});
+function yes(v){if(v!=='0'&&v!=='1')throw Error('Указывай 0 или 1');return v==='1'}
+function parse(line){let p=line.split(',').map(x=>x.trim()),cat=p.shift().toLowerCase();if(!CATS.includes(cat)||!p.length)throw Error('Формат: Гоша, 1.1, 2.1(h=2.5)');let a=p.map(x=>{let m=/^(\d+(?:\.\d+)*)(?:\s*\(([^()]*)\))?$/.exec(x);if(!m)throw Error('Неверная статья: '+x);let art=m[1],q={};if(!SPECIAL.has(art)&&!(art in FINES))throw Error('Неизвестная статья '+art);if(m[2])m[2].split(';').forEach(z=>{let [k,v]=z.split('=');if(!v)throw Error('Параметр должен быть key=value');q[k.trim()]=v.trim().toLowerCase()});return[art,q]});return[cat,a]}
+function roof(q){if(!('h'in q))throw Error('Для 2.1 укажи h, например 2.1(h=2.5)');let h=Number(q.h);if(!isFinite(h)||h<0)throw Error('Высота должна быть неотрицательным числом');if(q.allowed&&yes(q.allowed))return null;if(h<1.5&&!(q.important&&yes(q.important)))return null;return h<=2?100:h<=3?300:500}
+function fmt(x){return Number.isInteger(x)?String(x):String(Math.round(x*10)/10)}
+function judge(cat,arts){let cnt={...data[cat].counts},entries=[],jail=[],sum=0,night=arts.some(x=>x[0]==='5.2.1.1'),resist=arts.some(x=>x[0]==='4.2');for(let [art,q]of arts){if(art==='4.2'||art==='5.2.1.1')continue;let n=(cnt[art]||0)+1,fine=0,sen='',name=NAMES[art]||FINES[art]?.[0]||art;if(FINES[art])fine=FINES[art][1];else if(art==='1.1')fine=n%4?100:0,sen=n%4?'':'тюрьма';else if(art==='1.2')fine=n%4?200:0,sen=n%4?'':'тюрьма';else if(art==='2.1'){let x=roof(q);if(x===null){entries.push({t:'2.1 Руфинг: нарушение не считается',c:'muted'});continue}fine=n%4?x:0;sen=n%4?'':'тюрьма'}else if(art==='2.2'){let k=n%7; if(!k)sen='тюрьма';else fine=k<=3?600:1000}else if(art==='2.3'){fine=n%2?800:0;sen=n%2?'':'тюрьма'}else if(art==='3.1'){fine=q.jail&&yes(q.jail)?0:400;sen=q.jail&&yes(q.jail)?'тюрьма (решение судьи)':''}else if(art==='3.2')sen='тюрьма';else if(art==='3.3'){fine=500;sen='тюрьма'}else if(art==='4.1')sen='увеличение срока';else if(art==='4.1.1')sen='продление срока';else if(art==='5.4'){fine=n%3?500:0;sen=n%3?'':'тюрьма'}cnt[art]=n;let mult=(night?1.5:1)*(resist?1.5:1),amount=fine*mult;sum+=amount;let t=art+' '+name+': '+(fine?fmt(amount)+' мурчиков':'без штрафа');if(sen){t+=' + '+sen;jail.push(art+': '+sen)}if(['1.1','1.2','2.1','2.2','2.3','5.4'].includes(art))t+=' (случай №'+n+')';entries.push({t,c:sen?'jail':''})}if(night)entries.push({t:'5.2.1.1: ночной коэффициент ×1.5',c:'muted'});if(resist)entries.push({t:'4.2: коэффициент сопротивления ×1.5',c:'muted'});data[cat].counts=cnt;data[cat].total+=sum;return{entries,sum,jail}}
+function esc(s){let d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function render(res,cat){let h='<b>Дело: '+RUS[cat]+'</b>\n';res.entries.forEach(x=>h+='<span class="'+x.c+'">'+esc(x.t)+'</span>\n');h+='<span class="total">Итого: '+fmt(res.sum)+' мурчиков</span>';if(res.jail.length)h+='\n<span class="jail">Тюрьма / продление: '+esc(res.jail.join('; '))+'</span>';out.innerHTML=h}
+function cases(){CATS.forEach(c=>{let d=data[c],box=document.getElementById(c),a=Object.keys(d.counts).sort();box.innerHTML='<b>'+RUS[c]+'</b><div class="debt">Долг: '+fmt(d.total)+' 🐾</div>'+(a.length?'<ul>'+a.map(x=>'<li>'+x+' '+(NAMES[x]||'')+' — '+d.counts[x]+' раз</li>').join('')+'</ul>':'<div class="muted">Нарушений нет.</div>')})}
+document.getElementById('judge').onclick=()=>{try{let[c,a]=parse(inp.value.trim()),r=judge(c,a);save();render(r,c);cases();inp.value=''}catch(e){out.innerHTML='<span class="err">Ошибка: '+esc(e.message)+'</span>'}};inp.onkeydown=e=>{if(e.key==='Enter')document.getElementById('judge').click()};
+document.getElementById('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='cat_codex.json';a.click()};
+document.getElementById('upload').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.гоша||!x.тося||typeof x.гоша.total!=='number'&&typeof x.гоша.total!=='string')throw Error();data=x;save();cases();out.innerHTML='<span class="total">История загружена.</span>'}catch(err){out.innerHTML='<span class="err">Ошибка: файл истории повреждён.</span>'}};r.readAsText(f)};
+document.getElementById('clear').onclick=()=>{if(confirm('Удалить всю историю?')){data=blank();save();cases();out.textContent='История очищена.'}};
+let theme=localStorage.getItem('cat_theme')||'dark';function setTheme(x){document.documentElement.dataset.theme=x;document.getElementById('theme').textContent=x==='dark'?'🌙':'☀️';localStorage.setItem('cat_theme',x)}setTheme(theme);document.getElementById('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');cases();
 </script>
 </body>
 </html>
